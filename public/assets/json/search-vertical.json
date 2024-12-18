@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {
+      "name": "Dashboard",
+      "icon": "bx-home-circle",
+      "url": "dashboard"
+    },
+    {
+      "name": "Driver",
+      "icon": "bxs-group",
+      "url": "driver"
+    }
+  ]
+}
