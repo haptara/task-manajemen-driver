@@ -11,19 +11,20 @@ class Vehicle extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'license_plate',
-        'model',
-        'status',
-        'driver_id'
+        'driver_id',
+        'vehicle_number',
+        'merk',
+        'type',
+        'status'
     ];
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
 
     public function driver()
     {
         return $this->belongsTo(Driver::class);
-    }
-
-    public function tasks()
-    {
-        return $this->hasMany(Tasks::class);
     }
 }

@@ -21,14 +21,18 @@ class VehiclesController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
+        $validated = $request->validate([
+            'vehicle_number'   => 'required|unique:vehicles',
+            'merk'             => 'required|string|max:255',
+            'type'             => 'required|string|max:255',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'license_plate'    => 'required|unique:vehicles',
-                'model'             => 'required|string|max:255',
-            ]);
             Vehicle::create([
-                'model'             => $validated['model'],
-                'license_plate'     => $validated['license_plate'],
+                'vehicle_number'   => $validated['vehicle_number'],
+                'merk'             => $validated['merk'],
+                'type'             => $validated['type']
             ]);
 
             return redirect()->route('vehicles')->with('success', 'Vehicle berhasil ditambahkan!');

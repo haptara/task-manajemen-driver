@@ -32,7 +32,8 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Model</th>
+                                    <th>Merk</th>
+                                    <th>Tipe</th>
                                     <th>Plat Nomor</th>
                                     <th>Status</th>
                                     <th>Driver</th>
@@ -46,8 +47,9 @@
                                 @foreach ($vehicle as $v)
                                     <tr>
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ ucwords($v->model) }}</td>
-                                        <td>{{ strtoupper($v->license_plate) }}</td>
+                                        <td>{{ ucwords($v->merk) }}</td>
+                                        <td>{{ ucwords($v->type) }}</td>
+                                        <td>{{ strtoupper($v->vehicle_number) }}</td>
                                         <td>
                                             <span
                                                 class="badge rounded-pill {{ strtolower($v->status) == 'available' ? 'bg-label-success' : (strtolower($v->status) == 'maintenance' ? 'bg-label-danger' : 'bg-label-warning') }}">
@@ -95,12 +97,12 @@
                                 @csrf
                                 <div class="modal-body">
                                     <div class="col-sm-12 mb-3">
-                                        <label class="form-label" for="model">Model</label>
+                                        <label class="form-label" for="merk">Merk</label>
                                         <div class="form-group">
-                                            <input type="text" id="model"
-                                                class="form-control @error('model') is-invalid @enderror" name="model"
-                                                value="{{ old('model') }}" placeholder="eg. Pick Up Box" />
-                                            @error('model')
+                                            <input type="text" id="merk"
+                                                class="form-control @error('merk') is-invalid @enderror" name="merk"
+                                                value="{{ old('merk') }}" placeholder="eg. Hyundai, Daihatsu" />
+                                            @error('merk')
                                                 <div class="invalid-feedback d-flex align-item-center">
                                                     <i class='bx bx-x'></i> {{ $message }}
                                                 </div>
@@ -108,13 +110,26 @@
                                         </div>
                                     </div>
                                     <div class="col-sm-12 mb-3">
-                                        <label class="form-label" for="license_plate">Plat Nomor</label>
+                                        <label class="form-label" for="type">Tipe</label>
                                         <div class="form-group">
-                                            <input type="text" id="license_plate" name="license_plate"
-                                                class="form-control @error('license_plate') is-invalid @enderror"
-                                                value="{{ old('license_plate') }}" placeholder="eg. B 2024 FNZ" />
+                                            <input type="text" id="type"
+                                                class="form-control @error('type') is-invalid @enderror" name="type"
+                                                value="{{ old('type') }}" placeholder="eg. Pick Up Box" />
+                                            @error('type')
+                                                <div class="invalid-feedback d-flex align-item-center">
+                                                    <i class='bx bx-x'></i> {{ $message }}
+                                                </div>
+                                            @enderror
                                         </div>
-                                        @error('license_plate')
+                                    </div>
+                                    <div class="col-sm-12 mb-3">
+                                        <label class="form-label" for="vehicle_number">Plat Nomor</label>
+                                        <div class="form-group">
+                                            <input type="text" id="vehicle_number" name="vehicle_number"
+                                                class="form-control @error('vehicle_number') is-invalid @enderror"
+                                                value="{{ old('vehicle_number') }}" placeholder="eg. B 2024 FNZ" />
+                                        </div>
+                                        @error('vehicle_number')
                                             <div class="invalid-feedback d-flex align-item-center">
                                                 <i class='bx bx-x'></i> {{ $message }}
                                             </div>
@@ -195,6 +210,10 @@
 
                 @if (session('success'))
                     toastr.success("{{ session('success') }}");
+                @endif
+
+                @if (session('error'))
+                    toastr.error("{{ session('error') }}");
                 @endif
             });
         </script>

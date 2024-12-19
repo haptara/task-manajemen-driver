@@ -25,8 +25,9 @@
                                     <th>Nama</th>
                                     <th>Email</th>
                                     <th>No.Handphone</th>
+                                    <th>Status</th>
                                     <th>Create_at</th>
-                                    <th class="text-center">ACTIONS</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -38,7 +39,13 @@
                                         <td>{{ $no++ }}</td>
                                         <td>{{ strtoupper($d->name) }}</td>
                                         <td>{{ strtolower($d->email) }}</td>
-                                        <td>{{ $d->phone }}</td>
+                                        <td>{{ $d->no_handphone }}</td>
+                                        <td>
+                                            <span
+                                                class="badge {{ strtolower($d->status) == 'available' ? 'bg-label-success' : (strtolower($d->status) == 'maintenance' ? 'bg-label-danger' : 'bg-label-warning') }}">
+                                                {{ $d->status }}
+                                            </span>
+                                        </td>
                                         <td>{{ $d->created_at }}</td>
                                         <td class="text-center">
                                             <div class="d-inline-block"><a href="javascript:;"
@@ -103,12 +110,12 @@
                                 @enderror
                             </div>
                             <div class="col-sm-12">
-                                <label class="form-label" for="phone">No. Handphone</label>
+                                <label class="form-label" for="no_handphone">No. Handphone</label>
                                 <div class="form-group">
-                                    <input type="number" id="phone" name="phone"
-                                        class="form-control @error('phone') is-invalid @enderror"
-                                        value="{{ old('phone') }}" placeholder="08" />
-                                    @error('phone')
+                                    <input type="number" id="no_handphone" name="no_handphone"
+                                        class="form-control @error('no_handphone') is-invalid @enderror"
+                                        value="{{ old('no_handphone') }}" placeholder="08" />
+                                    @error('no_handphone')
                                         <div class="invalid-feedback d-flex align-item-center">
                                             <i class='bx bx-x'></i> {{ $message }}
                                         </div>

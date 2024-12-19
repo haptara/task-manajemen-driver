@@ -13,21 +13,18 @@ class Driver extends Model
     protected $fillable =   [
         'name',
         'email',
-        'phone'
+        'no_handphone',
+        'status',
+        'is_active'
     ];
 
     public function tasks()
     {
-        return $this->hasMany(Tasks::class, 'assigned_driver_id');
+        return $this->hasMany(Task::class);
     }
 
-    public function checkIn()
+    public function vehicle()
     {
-        return $this->hasMany(Check_in::class);
-    }
-
-    public function checkOut()
-    {
-        return $this->hasMany(Check_out::class);
+        return $this->hasMany(Vehicle::class);
     }
 }

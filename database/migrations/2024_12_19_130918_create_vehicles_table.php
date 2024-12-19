@@ -13,15 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('check_ins', function (Blueprint $table) {
+        Schema::create('vehicles', function (Blueprint $table) {
             $table->id();
 
-            $table->timestamp('timestamp');
-            $table->string('location'); // Could be GPS coordinates or an address
-            $table->foreignId('task_id')->constrained('tasks')->onDelete('cascade');
-            $table->foreignId('driver_id')->constrained('drivers')->onDelete('cascade');
+            $table->unsignedBigInteger('driver_id')->nullable();
+            $table->string('vehicle_number');
+            $table->string('merk');
+            $table->string('type');
+            $table->enum('status', ['Available', 'In Use', 'Maintenance'])->default('Available');
+            $table->foreign('driver_id')->references('id')->on('drivers')->onDelete('cascade');
             $table->softDeletes();
-
 
             $table->timestamps();
         });
@@ -34,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('check_ins');
+        Schema::dropIfExists('vehicles');
     }
 };

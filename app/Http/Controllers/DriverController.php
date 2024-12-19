@@ -24,7 +24,7 @@ class DriverController extends Controller
         $validated  = $request->validate([
             'name'  => 'required|string|max:255',
             'email' => 'required|unique:drivers|email',
-            'phone' => [
+            'no_handphone' => [
                 'required',
                 'regex:/^(?:\+62|08)[0-9]{8,13}$/', // Format Indonesia, 8-13 digit setelah kode negara atau prefix
             ]
@@ -32,12 +32,16 @@ class DriverController extends Controller
             // Dimulai dengan +62 atau 08. Diikuti oleh 8 hingga 13 digit angka (untuk nomor telepon Indonesia).
         ]);
 
-        Driver::create([
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-        ]);
+        try {
+            Driver::create([
+                'name'  => $validated['name'],
+                'email' => $validated['email'],
+                'no_handphone' => $validated['no_handphone'],
+            ]);
 
-        return redirect()->route('driver')->with('success', 'Driver berhasil ditambahkan!');
+            return redirect()->route('driver')->with('success', 'Driver berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            return redirect()->route('vehicles')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }

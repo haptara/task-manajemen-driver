@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('vehicles', function (Blueprint $table) {
+        Schema::create('drivers', function (Blueprint $table) {
             $table->id();
 
-            $table->string('license_plate')->unique();
-            $table->string('model');
-            $table->enum('status', ['Available', 'In Use', 'Maintenance'])->default('Available');
-            $table->foreignId('driver_id')->nullable()->constrained('drivers')->onDelete('set null');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('no_handphone');
+            $table->enum('status', ['available', 'in_progress'])->default('available');
+            $table->boolean('is_active')->default(true);
             $table->softDeletes();
 
             $table->timestamps();
@@ -33,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('vehicles');
+        Schema::dropIfExists('drivers');
     }
 };

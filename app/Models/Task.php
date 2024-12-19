@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-
-class Tasks extends Model
+class Task extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -16,13 +15,15 @@ class Tasks extends Model
         'slug',
         'title',
         'description',
-        'status',
-        'estimated_duration',
-        'actual_duration',
+        'board_id',
         'assigned_driver_id',
-        'created_by_admin_id',
-        'vehicle_id'
-
+        'vehicle_id',
+        'check_in',
+        'check_out',
+        'starting_from',
+        'finished_in',
+        'estimated_duration',
+        'duration',
     ];
 
     public function setTitleAttribute($value)
@@ -31,9 +32,9 @@ class Tasks extends Model
         $this->attributes['slug'] = Str::slug($value);
     }
 
-    public function user()
+    public function board()
     {
-        return $this->belongsTo(User::class, 'assigned_driver_id');
+        return $this->belongsTo(Board::class);
     }
 
     public function driver()
@@ -41,13 +42,8 @@ class Tasks extends Model
         return $this->belongsTo(Driver::class, 'assigned_driver_id');
     }
 
-    public function checkIn()
+    public function vehicle()
     {
-        return $this->hasMany(Check_in::class);
-    }
-
-    public function checkOut()
-    {
-        return $this->hasMany(Check_out::class);
+        return $this->belongsTo(Vehicle::class);
     }
 }
