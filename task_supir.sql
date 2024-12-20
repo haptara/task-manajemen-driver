@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Dec 19, 2024 at 09:50 AM
+-- Generation Time: Dec 20, 2024 at 10:02 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.3.14
 
@@ -68,7 +68,7 @@ CREATE TABLE `drivers` (
 --
 
 INSERT INTO `drivers` (`id`, `name`, `email`, `no_handphone`, `status`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
-(1, 'Fulan bin Fulan', 'fulanbinfulan@gmail.com', '082246117628', 'available', 1, NULL, '2024-12-18 21:46:36', '2024-12-18 21:46:36'),
+(1, 'Fulan bin Fulan', 'fulanbinfulan@gmail.com', '082246117628', 'in_progress', 1, NULL, '2024-12-18 21:46:36', '2024-12-18 21:46:36'),
 (2, 'Ahmad subaki', 'ahmadsubaki@gmail.com', '0822461127628', 'available', 1, NULL, '2024-12-18 21:50:09', '2024-12-18 21:50:09'),
 (3, 'syahril', 'syahril@gmail.com', '082246117628', 'in_progress', 1, NULL, '2024-12-19 04:53:12', '2024-12-19 04:53:12');
 
@@ -163,8 +163,8 @@ CREATE TABLE `tasks` (
   `check_out` timestamp NULL DEFAULT NULL,
   `starting_from` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `finished_in` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `estimated_duration` int NOT NULL,
-  `duration` int NOT NULL,
+  `estimated_duration` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `duration` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` enum('Urgent','High Priority','Normal Priority','Low Priority') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -176,7 +176,8 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `slug`, `title`, `description`, `board_id`, `assigned_driver_id`, `vehicle_id`, `check_in`, `check_out`, `starting_from`, `finished_in`, `estimated_duration`, `duration`, `status`, `deleted_at`, `created_at`, `updated_at`) VALUES
-(1, 'pemindahan-server-kopo', 'Pemindahan Server Kopo', 'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Vitae, est.', 2, 3, 2, '2024-12-12 09:38:01', NULL, 'Kantor 42 Bandung', 'Kantor Kopo Baru', 120, 120, 'High Priority', NULL, '2024-12-19 08:36:59', NULL);
+(1, 'pemindahan-server-kopo', 'Pemindahan Server Kopo', 'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Vitae, est.', 2, 3, 2, '2024-12-12 09:38:01', NULL, 'Kantor 42 Bandung', 'Kantor Kopo Baru', '120', '120', 'High Priority', NULL, '2024-12-19 08:36:59', NULL),
+(3, 'test-task-1', 'test task 1', 'deskripsi task 1', 1, 1, 1, NULL, NULL, 'bandung', 'jakarta', '100', '100', 'Normal Priority', NULL, '2024-12-20 03:16:27', '2024-12-20 03:16:27');
 
 -- --------------------------------------------------------
 
@@ -225,7 +226,7 @@ CREATE TABLE `vehicles` (
 --
 
 INSERT INTO `vehicles` (`id`, `driver_id`, `vehicle_number`, `merk`, `type`, `status`, `deleted_at`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'd 2024 fnz', 'hyundai', 'box', 'Available', NULL, '2024-12-19 07:16:13', '2024-12-19 07:16:13'),
+(1, 1, 'd 2024 fnz', 'hyundai', 'box', 'In Use', NULL, '2024-12-19 07:16:13', '2024-12-19 07:16:13'),
 (2, 3, 'b 2024 fnz', 'merci', 'sedan', 'In Use', NULL, '2024-12-19 07:16:13', '2024-12-19 07:16:13');
 
 --
@@ -335,7 +336,7 @@ ALTER TABLE `personal_access_tokens`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `users`
