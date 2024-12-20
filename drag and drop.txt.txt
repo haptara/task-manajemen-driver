@@ -1,0 +1,92 @@
+1. Blade
+@foreach ($boards as $b)
+    <div data-slug="{{ $b->slug }}" data-id="{{ $b->id }}" class="kanban-board"
+        style="width: 450px !important; margin-left: 12px; margin-right: 12px;">
+        <header class="kanban-board-header">
+            <div class="kanban-title-board">{{ ucwords($b->title) }}</div>
+        </header>
+        <main class="kanban-drag">
+            {{-- Start foreach tasks --}}
+            @foreach ($b->tasks as $t)
+                <div class="kanban-item" data-eid="{{ $t->id }}" style="width: 27.5rem !important;">
+                    <div class="d-flex justify-content-between flex-wrap align-items-center mb-2">
+                        <div class="item-badges">
+                            <div class="badge bg-label-{{ $t->status === 'urgent' ? 'danger' : 'primary' }}">
+                                {{ $t->status }}
+                            </div>
+                        </div>
+                    </div>
+                    <span class="kanban-text">{{ ucwords($t->title) }}</span>
+                </div>
+            @endforeach
+            {{-- End foreach tasks --}}
+        </main>
+    </div>
+@endforeach
+
+
+2. Jquery
+<script>
+    $(document).ready(function () {
+        // Inisialisasi Sortable.js untuk setiap kanban-drag
+        $(".kanban-drag").each(function () {
+            const slug = $(this).closest('.kanban-board').data('slug'); // Dapatkan slug board
+            const el = this;
+
+            new Sortable(el, {
+                group: 'kanban', // Nama grup untuk menghubungkan kolom
+                animation: 150, // Animasi saat drag-and-drop
+                onEnd: function (evt) {
+                    const item = $(evt.item); // Elemen yang dipindahkan
+                    const itemId = item.data('eid'); // ID item
+                    const newStatus = $(evt.to).closest('.kanban-board').data('slug'); // Status baru
+
+                    // Cegah drag-and-drop jika status tidak diizinkan
+                    if ((slug === 'complete' && newStatus === 'in-progress') || 
+                        (slug === 'in-progress' && newStatus === 'pending') || 
+                        (slug === 'pending' && newStatus === 'complete')) {
+                        alert('Drag and drop ini tidak diperbolehkan.');
+                        return evt.from.appendChild(evt.item); // Kembalikan item ke posisi awal
+                    }
+
+                    // AJAX untuk mengupdate status di database
+                    $.ajax({
+                        url: '{{ route("update-status") }}', // Endpoint update status
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}', // CSRF Token
+                            item_id: itemId,
+                            status: newStatus
+                        },
+                        success: function (response) {
+                            alert(response.message); // Tampilkan pesan sukses
+                        },
+                        error: function (xhr) {
+                            alert(xhr.responseJSON.message); // Tampilkan pesan error
+                            evt.from.appendChild(evt.item); // Kembalikan item jika gagal
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+3. Route
+Route::post('/update-status', [TaskController::class, 'updateStatus'])->name('update-status');
+
+4. Controller
+public function updateStatus(Request $request)
+{
+    $validated = $request->validate([
+        'item_id' => 'required|exists:tasks,id',
+        'status' => 'required|in:pending,in-progress,complete',
+    ]);
+
+    $task = Task::find($validated['item_id']);
+    $task->status = $validated['status'];
+    $task->save();
+
+    return response()->json(['message' => 'Status updated successfully.']);
+}
+
