@@ -24,12 +24,25 @@ class Task extends Model
         'finished_in',
         'estimated_duration',
         'duration',
+        'status',
     ];
 
     public function setTitleAttribute($value)
     {
+        // $this->attributes['title'] = $value;
+        // $this->attributes['slug'] = Str::slug($value);
         $this->attributes['title'] = $value;
-        $this->attributes['slug'] = Str::slug($value);
+
+        $slug = Str::slug($value);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (self::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        $this->attributes['slug'] = $slug;
     }
 
     public function board()

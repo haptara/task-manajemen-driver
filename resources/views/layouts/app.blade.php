@@ -83,9 +83,15 @@
     <script src="{{ asset('assets/js/config.js') }}"></script>
 
 
+    {{-- Sortable --}}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
     <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
+
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
 
     {{-- Datatable --}}
@@ -145,7 +151,7 @@
 
                     <!-- Footer -->
                     <footer class="content-footer footer bg-footer-theme">
-                        <div class="container-xxl">
+                        <div class="container-fluid">
                             <div
                                 class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
                                 <div class="text-body">

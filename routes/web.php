@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // TASK
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks');
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
 });
 
 Route::middleware('auth')->group(function () {

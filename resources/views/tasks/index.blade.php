@@ -1,17 +1,32 @@
 <x-app-layout>
     <x-slot:title>{{ $title }}</x-slot:title>
 
+    @php
+        function convertMinutesToHours($minutes)
+        {
+            $hours = floor($minutes / 60); // Menghitung jam
+            $remainingMinutes = $minutes % 60; // Menghitung sisa menit
+
+            // Jika durasi tepat jam, hanya tampilkan jam
+            if ($remainingMinutes == 0) {
+                return "{$hours} jam";
+            }
+
+            // Jika ada menit sisa, tampilkan jam dan menit
+            return "{$hours} jam {$remainingMinutes} menit";
+        }
+    @endphp
     <div class="container-fluid flex-grow-1 container-p-y">
 
         <div class="app-kanban">
             <div class="kanban-wrapper ps fnz-kanban-wrapper">
-                <div class="kanban-container fnz-kanban-container" id="kanban-container" style="width: 822px;">
+                <div class="kanban-container fnz-kanban-container" id="fnz-kanban-container" style="width: 822px;">
 
                     @foreach ($boards as $b)
                         <div data-slug="{{ $b->slug }}" data-id="{{ $b->id }}" class="kanban-board"
                             style="width: 450px !important; margin-left: 12px; margin-right: 12px;">
                             <header class="kanban-board-header">
-                                <div class="kanban-title-board">{{ $b->title }}</div>
+                                <div class="kanban-title-board">{{ ucwords($b->title) }}</div>
                                 <div class="dropdown">
                                     <i class="dropdown-toggle bx bx-dots-vertical-rounded cursor-pointer"
                                         id="board-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
@@ -39,23 +54,19 @@
                                 @foreach ($b->tasks as $key => $t)
                                     @php
                                         $status_task = $t->status;
-                                        if ($status_task == 'Urgent') {
-                                            $label_status_task = 'danger';
-                                        } elseif ($status_task == 'High Priority') {
-                                            $label_status_task = 'warning';
-                                        } elseif ($status_task == 'Normal Priority') {
-                                            $label_status_task = 'primary';
-                                        } elseif ($status_task == 'Low Priority') {
-                                            $label_status_task = 'success';
-                                        } else {
-                                            $label_status_task = '';
-                                        }
+                                        $badgeColor = match ($status_task) {
+                                            'Urgent' => 'danger',
+                                            'High Priority' => 'warning',
+                                            'Normal Priority' => 'primary',
+                                            'Low Priority' => 'success',
+                                            default => 'secondary',
+                                        };
                                     @endphp
-                                    <div class="kanban-item" data-eid="{{ $t->id }}"
-                                        style="width: 27.5rem !important;">
+                                    <div class="kanban-item sortable-list" id="{{ $b->slug }}-list"
+                                        data-eid="{{ $t->id }}" style="width: 27.5rem !important;">
                                         <div class="d-flex justify-content-between flex-wrap align-items-center mb-2">
                                             <div class="item-badges">
-                                                <div class="badge bg-label-{{ $label_status_task }}">
+                                                <div class="badge bg-label-{{ $badgeColor }}">
                                                     {{ $status_task }}
                                                 </div>
                                             </div>
@@ -74,7 +85,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <span class="kanban-text">{{ $t->title }}</span>
+                                        <span class="kanban-text">{{ ucwords($t->title) }}</span>
                                         <small class="text-muted">
                                             {{ $t->description }}
                                         </small>
@@ -93,8 +104,9 @@
                                                     data-bs-placement="top"
                                                     aria-label="{{ ucwords($t->driver->name) }}"
                                                     data-bs-original-title="{{ ucwords($t->driver->name) }}">
-                                                    <span
-                                                        class="avatar-initial rounded-circle bg-label-primary">SG</span>
+                                                    <span class="avatar-initial rounded-circle bg-label-primary">
+                                                        {{ strtoupper(substr(implode('', array_map(fn($word) => $word[0], explode(' ', $t->driver->name))), 0, 2)) }}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -102,8 +114,40 @@
                                             <div class="d-flex">
                                                 <span class="d-flex align-items-center me-2">
                                                     <i class='bx bxs-time me-1'></i>
-                                                    <span class="attachments">2 Jam ( Duration )</span>
+                                                    <span class="attachments">{{ convertMinutesToHours($t->duration) }}
+                                                        (Duration)
+                                                    </span>
                                                 </span>
+                                            </div>
+                                        </div>
+
+                                        <hr>
+
+                                        <div class="d-flex align-items-center my-2 justify-content-between">
+                                            <div class="avatar flex-shrink-0 me-2">
+                                                <span class="avatar-initial rounded bg-label-success">
+                                                    <i class='bx bx-log-in'></i>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex w-100 flex-wrap align-items-center">
+                                                <div class="me-2">
+                                                    <h6 class="mb-0">Checkin</h6>
+                                                    <small
+                                                        class="text-danger">{{ $t->check_in ?? 'xxxx-xx-xx xx:xx:xx' }}</small>
+                                                </div>
+                                            </div>
+
+                                            <div class="avatar flex-shrink-0 me-2">
+                                                <span class="avatar-initial rounded bg-label-primary">
+                                                    <i class='bx bx-log-out'></i>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex w-100 flex-wrap align-items-center">
+                                                <div class="me-2">
+                                                    <h6 class="mb-0">Checkout</h6>
+                                                    <small
+                                                        class="text-danger">{{ $t->check_out ?? 'xxxx-xx-xx xx:xx:xx' }}</small>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -115,10 +159,10 @@
                                                 </span>
                                                 <div class="timeline-event ps-1">
                                                     <div class="timeline-header">
-                                                        <small class="text-success text-uppercase">CHECK- IN</small>
+                                                        <small class="text-success text-uppercase">Sender</small>
                                                     </div>
-                                                    <h6 class="my-0">{{ $t->starting_from }}</h6>
-                                                    <small class="text-body mb-0">{{ $t->check_in }}</small>
+                                                    <h6 class="my-0">{{ ucfirst($t->starting_from) }}</h6>
+                                                    {{-- <small class="text-body mb-0">{{ $t->check_in }}</small> --}}
                                                 </div>
                                             </li>
                                             <li class="timeline-item ps-6 border-transparent">
@@ -128,10 +172,10 @@
                                                 </span>
                                                 <div class="timeline-event ps-1">
                                                     <div class="timeline-header">
-                                                        <small class="text-primary text-uppercase">CHECK-OUT</small>
+                                                        <small class="text-primary text-uppercase">Receiver</small>
                                                     </div>
-                                                    <h6 class="my-0">{{ $t->finished_in }}</h6>
-                                                    <p class="text-body mb-0">-</p>
+                                                    <h6 class="my-0">{{ ucfirst($t->finished_in) }}</h6>
+                                                    {{-- <p class="text-body mb-0">-</p> --}}
                                                 </div>
                                             </li>
                                         </ul>
@@ -154,140 +198,158 @@
             <div class="modal-dialog modal-lg modal-simple modal-edit-user">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                         <div class="text-center mb-6">
                             <h4 class="mb-2">Tambah Task Baru</h4>
                             <p>&nbsp;</p>
                         </div>
-                        <form class="row g-6">
-                            <div class="col-12 col-md-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label" for="title">
-                                        Title
-                                        <span class="text-danger">*</span></label>
-                                    <input type="text" id="title" name="title" class="form-control" />
+
+                        @if ($driver->count() > 0 && $vehicle->count() > 0)
+
+                            @php
+                                $val_deskripsi = old('description');
+                            @endphp
+                            <form action="{{ route('tasks.store') }}" method="POST" class="row g-6">
+                                @csrf
+                                <div class="col-12 col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label" for="title">
+                                            Title
+                                            <span class="text-danger">*</span></label>
+                                        <input type="text" id="title" name="title"
+                                            value="{{ old('title') }}"
+                                            class="form-control @error('title') is-invalid @enderror" />
+                                        @error('title')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label" for="description">Deskripsi</label>
-                                    <textarea type="text" id="description" name="description" class="form-control"></textarea>
+                                <div class="col-12 col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label" for="description">Deskripsi</label>
+                                        <textarea type="text" id="description" name="description" class="form-control">{{ $val_deskripsi }}</textarea>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="form-label" for="driver">Driver</label>
-                                    <select id="driver" name="driver" class="form-select">
-                                        <option selected>-Pilih-</option>
-                                        @foreach ($driver as $d)
-                                            <option value="{{ $d->id }}">{{ $d->name }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label" for="driver">Driver</label>
+                                        <select id="driver" name="driver"
+                                            class="form-select @error('driver') is-invalid @enderror">
+                                            <option selected>-Pilih-</option>
+                                            @foreach ($driver as $d)
+                                                <option value="{{ $d->id }}" @selected(old('driver') == $d->id)>
+                                                    {{ ucwords($d->name) }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('driver')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="form-label" for="driver">Vehicle</label>
-                                    <select id="driver" name="driver" class="form-select">
-                                        <option selected>-Pilih-</option>
-                                        @foreach ($vehicle as $v)
-                                            <option value="{{ $v->id }}">{{ $v->merk }} /
-                                                {{ $v->type }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label" for="vehicle">Vehicle</label>
+                                        <select id="vehicle" name="vehicle"
+                                            class="form-select @error('vehicle') is-invalid @enderror">
+                                            <option selected>-Pilih-</option>
+                                            @foreach ($vehicle as $v)
+                                                <option value="{{ $v->id }}" @selected(old('vehicle') == $v->id)>
+                                                    {{ ucwords($v->merk) }} /
+                                                    {{ $v->type }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('vehicle')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div>
-                            {{-- <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditUserEmail">Email</label>
-                                <input type="text" id="modalEditUserEmail" name="modalEditUserEmail"
-                                    class="form-control" placeholder="example@domain.com"
-                                    value="example@domain.com" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditUserStatus">Status</label>
-                                <select id="modalEditUserStatus" name="modalEditUserStatus"
-                                    class="select2 form-select" aria-label="Default select example">
-                                    <option selected>Status</option>
-                                    <option value="1">Active</option>
-                                    <option value="2">Inactive</option>
-                                    <option value="3">Suspended</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditTaxID">Tax ID</label>
-                                <input type="text" id="modalEditTaxID" name="modalEditTaxID"
-                                    class="form-control modal-edit-tax-id" placeholder="123 456 7890"
-                                    value="123 456 7890" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditUserPhone">Phone Number</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">US (+1)</span>
-                                    <input type="text" id="modalEditUserPhone" name="modalEditUserPhone"
-                                        class="form-control phone-number-mask" placeholder="202 555 0111"
-                                        value="202 555 0111" />
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="starting_from" class="form-label">Sender / Mulai Dari</label>
+                                        <input type="text"
+                                            class="form-control @error('starting_from') is-invalid @enderror"
+                                            name="starting_from" value="{{ old('starting_from') }}"
+                                            id="starting_from">
+                                        @error('starting_from')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditUserLanguage">Language</label>
-                                <select id="modalEditUserLanguage" name="modalEditUserLanguage"
-                                    class="select2 form-select" multiple>
-                                    <option value="">Select</option>
-                                    <option value="english" selected>English</option>
-                                    <option value="spanish">Spanish</option>
-                                    <option value="french">French</option>
-                                    <option value="german">German</option>
-                                    <option value="dutch">Dutch</option>
-                                    <option value="hebrew">Hebrew</option>
-                                    <option value="sanskrit">Sanskrit</option>
-                                    <option value="hindi">Hindi</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditUserCountry">Country</label>
-                                <select id="modalEditUserCountry" name="modalEditUserCountry"
-                                    class="select2 form-select" data-allow-clear="true">
-                                    <option value="">Select</option>
-                                    <option value="Australia">Australia</option>
-                                    <option value="Bangladesh">Bangladesh</option>
-                                    <option value="Belarus">Belarus</option>
-                                    <option value="Brazil">Brazil</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="China">China</option>
-                                    <option value="France">France</option>
-                                    <option value="Germany">Germany</option>
-                                    <option value="India" selected>India</option>
-                                    <option value="Indonesia">Indonesia</option>
-                                    <option value="Israel">Israel</option>
-                                    <option value="Italy">Italy</option>
-                                    <option value="Japan">Japan</option>
-                                    <option value="Korea">Korea, Republic of</option>
-                                    <option value="Mexico">Mexico</option>
-                                    <option value="Philippines">Philippines</option>
-                                    <option value="Russia">Russian Federation</option>
-                                    <option value="South Africa">South Africa</option>
-                                    <option value="Thailand">Thailand</option>
-                                    <option value="Turkey">Turkey</option>
-                                    <option value="Ukraine">Ukraine</option>
-                                    <option value="United Arab Emirates">United Arab Emirates</option>
-                                    <option value="United Kingdom">United Kingdom</option>
-                                    <option value="United States">United States</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check form-switch my-2 ms-2">
-                                    <input type="checkbox" class="form-check-input" id="editBillingAddress"
-                                        checked />
-                                    <label for="editBillingAddress" class="switch-label">Use as a billing
-                                        address?</label>
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="finished_in" class="form-label">Received / Finished In</label>
+                                        <input type="text"
+                                            class="form-control @error('finished_in') is-invalid @enderror"
+                                            value="{{ old('finished_in') }}" name="finished_in" id="finished_in">
+                                        @error('finished_in')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div> --}}
-                            <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-primary me-3">Submit</button>
-                                <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="modal"
-                                    aria-label="Close">Cancel</button>
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="status">Status</label>
+                                        <select name="status" id="status"
+                                            class="form-control @error('status') is-invalid @enderror">
+                                            <option value="">-Pilih-</option>
+                                            <option value="Urgent" @selected(old('status') == 'Urgent')>Urgent</option>
+                                            <option value="High Priority" @selected(old('status') == 'High Priority')>High Priority
+                                            </option>
+                                            <option value="Normal Priority" @selected(old('status') == 'Normal Priority')>Normal
+                                                Priority
+                                            </option>
+                                            <option value="Low Priority" @selected(old('status') == 'Low Priority')>Low Priority
+                                            </option>
+                                        </select>
+                                        @error('status')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="duration">Durasi (Menit)</label>
+                                        <input type="number"
+                                            class="form-control @error('duration') is-invalid @enderror"
+                                            name="duration" id="duration" min="0"
+                                            value="{{ old('duration') }}">
+                                        @error('duration')
+                                            <div class="invalid-feedback d-flex align-item-center">
+                                                <i class='bx bx-x'></i> {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn btn-primary me-3 btnFnz">Submit</button>
+                                    <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="modal"
+                                        aria-label="Close">Cancel</button>
+                                </div>
+                            </form>
+                        @else
+                            <div class="alert alert-warning alert-dismissible" role="alert">
+                                <h6 class="alert-heading d-flex align-items-center mb-1">Alert</h6>
+                                @if ($driver->count() == 0)
+                                    <p class="mb-0">Data Driver sedang full.</p>
+                                @endif
+                                @if ($vehicle->count() == 0)
+                                    <p class="mb-0">Data Kendaraan sedang full.</p>
+                                @endif
                             </div>
-                        </form>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -297,86 +359,25 @@
     </div>
 
     @push('script')
+        @if ($errors->any())
+            <script>
+                $(document).ready(function() {
+                    $('#add_new_item').modal('show');
+                });
+            </script>
+        @endif
         <script>
             $(document).ready(function() {
 
-                // Ketika tombol Add new diklik
-                $(".kanban-add-board-btn").on("click", function() {
-                    // Menampilkan input dan tombol Add/Cancel
-                    $(".kanban-add-board-input").removeClass("d-none");
-                });
+                $(".sortable-list").sortable({
 
-                // Ketika tombol Cancel diklik
-                $(".kanban-add-board-cancel-btn").on("click", function() {
-                    // Menyembunyikan input dan tombol Add/Cancel
-                    $(".kanban-add-board-input").addClass("d-none");
-                });
-
-                $('#add-new-board').on('submit', function(e) {
-                    e.preventDefault();
-
-                    var boardTitle = $('#kanban-add-board-input').val().trim();
-                    if (boardTitle) {
-                        $.ajax({
-                            url: '/store-board', // Endpoint untuk menambah board
-                            method: 'POST',
-                            data: {
-                                title: boardTitle,
-                                _token: '{{ csrf_token() }}' // CSRF token untuk keamanan
-                            },
-                            success: function(response) {
-                                if (response.status === 'success') {
-
-                                    // Menambahkan board baru secara langsung ke halaman
-                                    var newBoard = `
-                            <div data-slug="board-${response.board.slug}" data-order="${response.board.position}" class="kanban-board" style="width: 250px; margin-left: 12px; margin-right: 12px;">
-                                <header class="kanban-board-header">
-                                    <div class="kanban-title-board">${response.board.title}</div>
-                                    <div class="dropdown">
-                                        <i class="dropdown-toggle bx bx-dots-vertical-rounded cursor-pointer"
-                                            id="board-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false"></i>
-                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="board-dropdown">
-                                            <a class="dropdown-item delete-board" href="javascript:void(0)"> <i
-                                                class="bx bx-trash bx-xs"></i> <span class="align-middle">Delete</span></a>
-                                            <a class="dropdown-item" href="javascript:void(0)"><i class="bx bx-rename bx-xs"></i>
-                                                <span class="align-middle">Rename</span></a>
-                                            <a class="dropdown-item" href="javascript:void(0)"><i class="bx bx-archive bx-xs"></i>
-                                                <span class="align-middle">Archive</span></a>
-                                        </div>
-                                    </div>
-                                    <button class="kanban-title-button btn btn-default">+ Add New Item</button>
-                                </header>
-                                <main class="kanban-drag"></main>
-                                <footer></footer>
-                            </div>`;
-
-                                    // $('#kanban-container').append(newBoard);
-                                    // $('#kanban-container').prepend(newBoard);
-                                    $('#kanban-container').find('.kanban-add-new-board').before(
-                                        newBoard);
-
-                                    // Sembunyikan input dan reset nilai input
-                                    $('#kanban-add-board-input').addClass('d-none');
-                                    $('#kanban-add-board-input').val('');
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error(error);
-                                toastr.error("Server Error");
-                            }
-                        });
-
-                    } else {
-                        toastr.warning("Title tidak boleh kosong!");
-                    }
-                });
-
-                $(document).on('click', '.delete-board', function() {
-                    alert('delete')
-                });
+                }).disableSelection();
 
                 @if (session('success'))
+                    toastr.success("{{ session('success') }}");
+                @endif
+
+                @if (session('error'))
                     toastr.success("{{ session('success') }}");
                 @endif
 
@@ -386,7 +387,7 @@
                     new PerfectScrollbar(kanbanWrapper[0]);
                 }
 
-                var kanbanContainer = $(".fnz-kanban-container");
+                // var kanbanContainer = $(".fnz-kanban-container");
 
             });
         </script>
