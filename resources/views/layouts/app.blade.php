@@ -91,8 +91,6 @@
     <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
 
 
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-
 
     {{-- Datatable --}}
     {{-- <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script> --}}

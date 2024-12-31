@@ -36,10 +36,10 @@
                                             <i class="bx bx-trash bx-xs"></i>
                                             <span class="align-middle">Delete All</span>
                                         </a>
-                                        <a class="dropdown-item" href="javascript:void(0)">
+                                        {{-- <a class="dropdown-item" href="javascript:void(0)">
                                             <i class="bx bx-edit-alt bx-xs"></i>
-                                            <span class="align-middle">Update All</span>
-                                        </a>
+                                            <span class="align-middle">Update Status All</span>
+                                        </a> --}}
                                     </div>
                                 </div>
 
@@ -132,7 +132,7 @@
                                             <div class="d-flex w-100 flex-wrap align-items-center">
                                                 <div class="me-2">
                                                     <h6 class="mb-0">Checkin</h6>
-                                                    <small
+                                                    <small id="check_in-{{ $t->id }}"
                                                         class="text-danger">{{ $t->check_in ?? 'xxxx-xx-xx xx:xx:xx' }}</small>
                                                 </div>
                                             </div>
@@ -145,7 +145,7 @@
                                             <div class="d-flex w-100 flex-wrap align-items-center">
                                                 <div class="me-2">
                                                     <h6 class="mb-0">Checkout</h6>
-                                                    <small
+                                                    <small id="check_out-{{ $t->id }}"
                                                         class="text-danger">{{ $t->check_out ?? 'xxxx-xx-xx xx:xx:xx' }}</small>
                                                 </div>
                                             </div>
@@ -356,6 +356,27 @@
         </div>
         <!--/ Edit User Modal -->
 
+
+        {{-- DELETE --}}
+        <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel2">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteTask">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- DELETE --}}
     </div>
 
     @push('script')
@@ -369,9 +390,109 @@
         <script>
             $(document).ready(function() {
 
-                $(".sortable-list").sortable({
+                let taskIdToDelete = null; // Menyimpan ID task yang akan dihapus
+                let taskElementToDelete = null; // Menyimpan elemen DOM task
 
-                }).disableSelection();
+                // Event saat tombol "Delete" diklik
+                $(document).on('click', '.delete-task', function() {
+                    taskElementToDelete = $(this).closest('.kanban-item'); // Elemen task
+                    taskIdToDelete = taskElementToDelete.data('eid'); // ID task dari atribut data
+
+                    // Tampilkan modal konfirmasi
+                    $('#deleteTaskModal').modal('show');
+                });
+
+                $('#confirmDeleteTask').on('click', function() {
+                    if (taskIdToDelete) {
+                        $.ajax({
+                            url: '{{ route('delete-task') }}',
+                            method: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                id: taskIdToDelete
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    taskElementToDelete.fadeOut(300, function() {
+                                        $(this).remove();
+                                    });
+                                    $('#deleteTaskModal').modal('hide');
+                                } else {
+                                    toastr.error(response.message || 'Failed to delete the task.');
+                                }
+                            },
+                            error: function(xhr) {
+                                toastr.error(xhr.responseJSON.message ||
+                                    'An error occurred while deleting the task.');
+                            }
+                        });
+                    }
+                });
+
+                $(".kanban-drag").each(function() {
+                    // const slug = $(this).closest('.kanban-board').data('slug');
+                    const el = this;
+
+                    new Sortable(el, {
+                        group: 'kanban',
+                        animation: 150,
+                        onEnd: function(evt) {
+                            const item = $(evt.item);
+                            const itemId = item.data('eid');
+                            // const newStatus = $(evt.to).closest('.kanban-board').data('slug');
+                            const oldSlug = $(evt.from).closest(".kanban-board").data(
+                                "slug"); // Slug sebelumnya
+                            const newSlug = $(evt.to).closest(".kanban-board").data(
+                                "slug"); // Slug tujuan
+
+                            if (
+                                (oldSlug === "completed" && newSlug === "in-progress") ||
+                                (oldSlug === "in-progress" && newSlug === "pending") ||
+                                (oldSlug === "completed" && newSlug === "pending") ||
+                                (oldSlug === "pending" && newSlug === "completed")
+                            ) {
+                                toastr.error("Drag and drop ini tidak diperbolehkan.");
+                                return evt.from.appendChild(evt.item);
+                            }
+                            // if ((slug === 'completed' && newStatus === 'in-progress') ||
+                            //     (slug === 'in-progress' && newStatus === 'pending') ||
+                            //     (slug === 'pending' && newStatus === 'completed')) {
+                            //     toastr.error('Drag and drop ini tidak diperbolehkan.');
+                            //     return evt.from.appendChild(evt.item);
+                            // }
+
+                            $.ajax({
+                                url: '{{ route('update-status') }}',
+                                method: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    id: itemId,
+                                    status: newSlug
+                                },
+                                success: function(response) {
+                                    // console.log(response.data.status);
+                                    if (response.data.board_id == '3') {
+                                        $('#check_out-' + response.data.id).html(
+                                            response
+                                            .data
+                                            .check_out);
+                                    }
+                                    $('#check_in-' + response.data.id).html(response
+                                        .data
+                                        .check_in);
+
+                                    $(evt.to).closest(".kanban-board").data("slug",
+                                        response.data.status);
+                                },
+                                error: function(xhr) {
+                                    toastr.error(xhr.responseJSON.message);
+                                    evt.from.appendChild(evt.item);
+                                }
+                            });
+                        }
+                    });
+
+                })
 
                 @if (session('success'))
                     toastr.success("{{ session('success') }}");
